@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -11,14 +12,16 @@ type Book struct {
 	ISBN   string `json:"isbn"`
 }
 
+// Byte array and json in same thing in Go
+
 func (b Book) ToJSON() []byte {
 	ToJSON, err := json.Marshal(b)
 	if err != nil {
-		panic(err) // not best parctice
+		panic(err) // not best practice
 	}
 	return ToJSON
 }
-func FromJSON(data []byte) Book {
+func FromByteArr(data []byte) Book {
 	book := Book{}
 	err := json.Unmarshal(data, &book)
 	if err != nil {
@@ -28,7 +31,7 @@ func FromJSON(data []byte) Book {
 }
 
 var Books = map[string]Book{
-	"1111111111": {Title: "Cloud Native Go", Author: "M.-L. Reimer", ISBN: "1111111111"},
+	"1111111111": {Title: "Cloud Native Go", Author: "M.-L. Reamer", ISBN: "1111111111"},
 	"2222222222": {Title: "Cloud Native Net", Author: "Hossein Alizadeh", ISBN: "2222222222"},
 }
 
@@ -65,12 +68,38 @@ func BooksHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			books := GetAllBooks()
 			writeJson(w, books)
 		}
+	case http.MethodPost:
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		book := FromByteArr(body)
+
+		isbn, created := CreateBook(book)
+		if created {
+			w.Header().Add("Location", "/api/books/"+isbn)
+			w.WriteHeader(http.StatusCreated)
+		} else if len(isbn) > 5 {
+			w.WriteHeader(http.StatusConflict)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unsupported request method. "))
 
 	}
+}
+
+func CreateBook(book Book) (string, bool) {
+
+	bookExisted, exists := Books[book.ISBN]
+	if exists {
+		return bookExisted.ISBN, false
+	}
+	Books[book.ISBN] = book
+	return book.ISBN, true
 }
 
 func GetBook(isbn string) (*Book, bool) {
