@@ -46,3 +46,9 @@ Content-Type: application/json; charset=utf-8
     "ISBN": "1111111111"
 }
 ###
+
+# Delete Book 
+
+DELETE   http://localhost:8080/api/books/1111111111
+
+###
