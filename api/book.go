@@ -27,16 +27,72 @@ func FromJSON(data []byte) Book {
 	return book
 }
 
-var Books = []Book{
-	{Title: "Cloud Native Go", Author: "M.-L. Reimer", ISBN: "0123456789"},
-	{Title: "Cloud Native Net", Author: "Hossein Alizadeh", ISBN: "9876543210"},
+var Books = map[string]Book{
+	"1111111111": {Title: "Cloud Native Go", Author: "M.-L. Reimer", ISBN: "1111111111"},
+	"2222222222": {Title: "Cloud Native Net", Author: "Hossein Alizadeh", ISBN: "2222222222"},
 }
 
+// func BookHandlerFunc(w http.ResponseWriter, r *http.Request) {
+// 	books, err := json.Marshal(Books)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
+// 	w.Write(books)
+// }
+
 func BookHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	books, err := json.Marshal(Books)
+
+}
+
+func BooksHandlerFunc(w http.ResponseWriter, r *http.Request) {
+	//isbn := r.URL.Query().Get("isbn")
+	isbn := r.URL.Path[len("/api/books/"):]
+
+	switch method := r.Method; method {
+	case http.MethodGet:
+
+		if len(isbn) >= 1 {
+			book, found := GetBook(isbn)
+			if found {
+				//w.WriteHeader(http.StatusFound)
+				writeJson(w, book)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
+
+		} else {
+			books := GetAllBooks()
+			writeJson(w, books)
+		}
+
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Unsupported request method. "))
+
+	}
+}
+
+func GetBook(isbn string) (*Book, bool) {
+	book, found := Books[isbn]
+	return &book, found
+}
+
+func GetAllBooks() []Book {
+	arrBooks := make([]Book, len(Books))
+	i := 0
+	for _, book := range Books {
+		arrBooks[i] = book
+		i++
+	}
+	return arrBooks
+}
+func writeJson(w http.ResponseWriter, i interface{}) {
+	bytes, err := json.Marshal(i)
 	if err != nil {
 		panic(err)
 	}
+
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
-	w.Write(books)
+	w.Write(bytes)
 }

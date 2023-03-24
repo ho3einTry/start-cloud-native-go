@@ -11,15 +11,17 @@ func main() {
 
 	http.HandleFunc("/", index)
 	http.HandleFunc("/api/echo", echo)
-	http.HandleFunc("/api/book/", api.BookHandlerFunc)
+	//http.HandleFunc("/api/book/", api.BookHandlerFunc)
+	http.HandleFunc("/api/books/", api.BooksHandlerFunc)
 
+	fmt.Printf("start server at http://localhost%s", port())
 	http.ListenAndServe(port(), nil)
 
 }
 
 func port() string {
 	port := os.Getenv("PORT")
-	if len(port) == 1 {
+	if len(port) <= 1 {
 		port = "8080"
 	}
 	return ":" + port

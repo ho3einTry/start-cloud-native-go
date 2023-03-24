@@ -1,0 +1,11 @@
+# Get all books
+GET http://localhost:8080/api/books/
+###
+
+# Get specific book
+GET http://localhost:8080/api/books/1111111111
+###
+
+# Not Exists Book
+GET http://localhost:8080/api/books/1
+###
