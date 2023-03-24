@@ -44,51 +44,83 @@ var Books = map[string]Book{
 // 	w.Write(books)
 // }
 
-func BookHandlerFunc(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func BooksHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	//isbn := r.URL.Query().Get("isbn")
-	isbn := r.URL.Path[len("/api/books/"):]
 
 	switch method := r.Method; method {
 	case http.MethodGet:
-
-		if len(isbn) >= 1 {
-			book, found := GetBook(isbn)
-			if found {
-				//w.WriteHeader(http.StatusFound)
-				writeJson(w, book)
-			} else {
-				w.WriteHeader(http.StatusNotFound)
-			}
-
-		} else {
-			books := GetAllBooks()
-			writeJson(w, books)
-		}
+		getRequest(w, r)
 	case http.MethodPost:
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-		book := FromByteArr(body)
-
-		isbn, created := CreateBook(book)
-		if created {
-			w.Header().Add("Location", "/api/books/"+isbn)
-			w.WriteHeader(http.StatusCreated)
-		} else if len(isbn) > 5 {
-			w.WriteHeader(http.StatusConflict)
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		postRequest(w, r)
+	case http.MethodPut:
+		putRequest(w, r)
 
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unsupported request method. "))
 
+	}
+}
+
+func putRequest(w http.ResponseWriter, r *http.Request) {
+
+	isbn := r.URL.Path[len("/api/books/"):]
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil || len(isbn) <= 1 {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	book := FromByteArr(body)
+	exists := UpdateBook(isbn, book)
+	if exists {
+		w.Header().Add("Location", "/api/books/"+isbn)
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
+func UpdateBook(isbn string, book Book) bool {
+	_, exists := Books[isbn]
+	if exists && isbn == book.ISBN {
+		Books[isbn] = book
+		return true
+	}
+	return false
+
+}
+
+func postRequest(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	book := FromByteArr(body)
+
+	isbn, created := CreateBook(book)
+	if created {
+		w.Header().Add("Location", "/api/books/"+isbn)
+		w.WriteHeader(http.StatusCreated)
+	} else if len(isbn) > 5 {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func getRequest(w http.ResponseWriter, r *http.Request) {
+	isbn := r.URL.Path[len("/api/books/"):]
+	if len(isbn) >= 1 {
+		book, found := GetBook(isbn)
+		if found {
+
+			writeJson(w, book)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+		}
+
+	} else {
+		books := GetAllBooks()
+		writeJson(w, books)
 	}
 }
 
