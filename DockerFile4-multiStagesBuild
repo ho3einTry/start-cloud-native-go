@@ -1,0 +1,13 @@
+FROM alpine:3.17.2 as base
+
+LABEL "Author"="Hossein Alizadeh"
+
+RUN  apk add libc6-compat
+COPY --from=base ./start-cloud-native-go /app/start-cloud-native-go
+
+RUN   chmod +x /app/start-cloud-native-go
+
+ENV PORT 80
+EXPOSE 80
+
+ENTRYPOINT ./app/start-cloud-native-go

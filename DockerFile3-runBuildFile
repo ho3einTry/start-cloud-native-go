@@ -1,0 +1,23 @@
+
+# use GOOS=linux GOARCH=amd64 go build
+FROM alpine:3.17.2
+
+LABEL "Author"="Hossein Alizadeh"
+
+RUN apk add libc6-compat
+COPY ./start-cloud-native-go /app/start-cloud-native-go
+
+RUN chmod +x /app/start-cloud-native-go
+
+ENV PORT 80
+EXPOSE 80
+
+ENTRYPOINT ./app/start-cloud-native-go
+
+
+
+# for debuging, first comment entrypoint for prevent runing in container with error
+# after that use command like this :
+#docker run -it --entrypoint sh  hosseinalizadeh/start-cloud-native-go:1.0.0-alpineBase 
+# for check content of docker image and debug that
+# for my example, the docker image needs to have "apk add libc6-compat"
