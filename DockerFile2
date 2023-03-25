@@ -1,0 +1,17 @@
+FROM golang:1.19-alpine3.17
+LABEL org.opencontainers.image.authors="Hossein Alizadeh"
+LABEL version="1.0"
+LABEL description="test docker image version 1.0"
+LABEL "my coustom label"="value"
+
+ENV SOURCES go/src/github/ho3eintry/start-cloud-native-go
+
+COPY . ${SOURCES}
+
+RUN cd ${SOURCES} && CGO_ENABLE=0 go install
+
+ENV PORT 9090
+EXPOSE 7070
+
+ENTRYPOINT start-cloud-native-go
+

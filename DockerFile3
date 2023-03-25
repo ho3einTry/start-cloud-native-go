@@ -1,0 +1,14 @@
+
+# use GOOS=linux GOARCH=amd64 go build
+FROM alpine:3.17.2
+
+LABEL "Author"="Hossein Alizadeh"
+
+COPY ./build/start-cloud-native-go /opt/start-cloud-native-go
+
+RUN chmod +x /opt/start-cloud-native-go
+
+ENV PORT 9090
+EXPOSE 7070
+
+ENTRYPOINT /opt/start-cloud-native-go
